@@ -1,5 +1,6 @@
 import asyncio
 import json
+import random
 from datetime import timedelta
 from temporalio import activity, workflow
 from temporalio.client import Client
@@ -7,8 +8,52 @@ from temporalio.worker import Worker
 
 
 # ============================================================================
+# ISSUE SCENARIOS - Random realistic and funny issues
+# ============================================================================
+
+ISSUE_SCENARIOS = [
+    # Realistic Issues
+    {"text": "🛃 Customs Documentation Error - Missing import permits", "type": "realistic"},
+    {"text": "🚢 Port Congestion - 3-day delay at destination port", "type": "realistic"},
+    {"text": "🚨 Random Customs Inspection - Selected for cargo scan", "type": "realistic"},
+    {"text": "📋 Incorrect Container Labeling - Mislabeled hazmat classification", "type": "realistic"},
+    {"text": "🔒 Biosecurity Quarantine Hold - Agricultural inspection required", "type": "realistic"},
+    {"text": "💳 Payment Verification Required - Bank hold on shipping fees", "type": "realistic"},
+    {"text": "🏭 Port Workers Strike - Union negotiations in progress", "type": "realistic"},
+    {"text": "🌡️ Temperature Deviation Alert - Refrigerated cargo out of spec", "type": "realistic"},
+    {"text": "🌊 Rough Seas Delay - Storm system causing 2-day delay", "type": "semi-realistic"},
+    {"text": "⚡ Container Crane Malfunction - Equipment failure at port", "type": "semi-realistic"},
+    {"text": "🐀 Pest Detection - Fumigation required before unloading", "type": "semi-realistic"},
+    {"text": "📡 GPS Tracking System Offline - Manual tracking required", "type": "semi-realistic"},
+    # Funny/Absurd Issues
+    {"text": "🏴‍☠️ Pirate Activity Detected - Somali pirates spotted 50nm away", "type": "funny"},
+    {"text": "👽 UFO Sighting - Crew distracted by alien spacecraft", "type": "funny"},
+    {"text": "🦈 Shark Attack on Hull - Minor damage from aggressive shark", "type": "funny"},
+    {"text": "🐙 Kraken Rumor - Sailors refuse to proceed without bonus", "type": "funny"},
+    {"text": "🧜‍♀️ Mermaid Union Strike - Underwater protest blocking route", "type": "funny"},
+    {"text": "🦖 Godzilla Rerouting - Tokyo Bay closed for monster activity", "type": "funny"},
+    {"text": "🛸 Area 51 Airspace Violation - Military detention required", "type": "funny"},
+    {"text": "🧟 Zombie Apocalypse Drill - Port in emergency lockdown", "type": "funny"},
+    {"text": "🦅 Giant Eagle Nest - Found on container, wildlife protection delay", "type": "funny"},
+    {"text": "🎣 Captain's Fishing Tournament - Crew refuses to skip competition", "type": "funny"},
+]
+
+
+# ============================================================================
 # ACTIVITIES - These interact with the shared shipments.json file
 # ============================================================================
+
+@activity.defn
+async def generate_random_issues() -> dict:
+    """Generate random issues for the shipment (70% chance of 1-2 issues)."""
+    # 70% chance of having an issue
+    if random.random() < 0.7:
+        num_issues = random.randint(1, 2)
+        selected_issues = random.sample(ISSUE_SCENARIOS, num_issues)
+        issue_text = " | ".join([issue["text"] for issue in selected_issues])
+        return {"has_issue": True, "issue_text": issue_text}
+    else:
+        return {"has_issue": False, "issue_text": None}
 
 @activity.defn
 async def update_shipment_status(shipment_id: str, status: str, current_location: str = None, issue_details: str = None):
@@ -98,93 +143,117 @@ class ShipmentLifecycleWorkflow:
             start_to_close_timeout=timedelta(seconds=10),
         )
         
-        # Step 4: Issue detected! Set status and PAUSE
-        workflow.logger.info(f"{shipment_id}: Issue detected at customs!")
-        await asyncio.sleep(8)  # Increased from 2 to 8 seconds
-        
-        await workflow.execute_activity(
-            update_shipment_status,
-            args=[
-                shipment_id,
-                "Issue Detected",
-                f"Customs checkpoint - {shipment_data['destination']}",
-                "Documentation discrepancy found - requires manual review"
-            ],
+        # Step 4: Check for random issues using an activity
+        workflow.logger.info(f"{shipment_id}: Checking for customs issues...")
+        issue_result = await workflow.execute_activity(
+            generate_random_issues,
             start_to_close_timeout=timedelta(seconds=10),
         )
         
-        # PAUSE: Wait for signal with resolution choice
-        workflow.logger.info(f"{shipment_id}: Waiting for resolution signal...")
-        await workflow.wait_condition(lambda: self.resolution_choice is not None)
-        
-        # Step 5: Process the resolution based on user choice
-        workflow.logger.info(f"{shipment_id}: Received resolution choice: {self.resolution_choice}")
-        
-        if self.resolution_choice == "expedite":
-            # Express Clearance - $5000 - Fastest option
-            workflow.logger.info(f"{shipment_id}: Processing express clearance (+$5000)...")
-            await asyncio.sleep(30)  # Increased from 2 to 30 seconds (1-2 days)
+        # Step 5: Handle issues if they exist
+        if issue_result["has_issue"]:
+            workflow.logger.info(f"{shipment_id}: Issue detected at customs!")
+            
+            await asyncio.sleep(8)  # Increased from 2 to 8 seconds
+            
             await workflow.execute_activity(
                 update_shipment_status,
                 args=[
                     shipment_id,
-                    "Cleared Customs",
-                    f"Customs cleared (Express Service) - {shipment_data['destination']}",
-                    None
+                    "Issue Detected",
+                    f"Customs checkpoint - {shipment_data['destination']}",
+                    issue_result["issue_text"]
                 ],
                 start_to_close_timeout=timedelta(seconds=10),
             )
-        elif self.resolution_choice == "bribe_official":
-            # Facilitation Fee - $2500 - Fast but not instant
-            workflow.logger.info(f"{shipment_id}: Processing facilitation payment (+$2500)...")
-            await asyncio.sleep(40)  # Increased from 3 to 40 seconds (2-3 days)
-            await workflow.execute_activity(
-                update_shipment_status,
-                args=[
-                    shipment_id,
-                    "Cleared Customs",
-                    f"Customs cleared (Expedited Processing) - {shipment_data['destination']}",
-                    None
-                ],
-                start_to_close_timeout=timedelta(seconds=10),
-            )
-        elif self.resolution_choice == "reroute":
-            # Reroute - $3200 - Takes time to reroute but avoids delays
-            workflow.logger.info(f"{shipment_id}: Rerouting shipment through alternative port (+$3200)...")
-            await asyncio.sleep(50)  # Increased from 4 to 50 seconds (3-4 days)
-            await workflow.execute_activity(
-                update_shipment_status,
-                args=[
-                    shipment_id,
-                    "Cleared Customs",
-                    f"Rerouted and cleared (Alternative Port) - {shipment_data['destination']}",
-                    None
-                ],
-                start_to_close_timeout=timedelta(seconds=10),
-            )
-        elif self.resolution_choice == "wait":
-            # Standard Wait - Free - Slowest option
-            workflow.logger.info(f"{shipment_id}: Waiting for standard processing (no additional cost)...")
-            await asyncio.sleep(60)  # Increased from 6 to 60 seconds (5-7 days)
-            await workflow.execute_activity(
-                update_shipment_status,
-                args=[
-                    shipment_id,
-                    "Cleared Customs",
-                    f"Customs cleared (Standard Processing) - {shipment_data['destination']}",
-                    None
-                ],
-                start_to_close_timeout=timedelta(seconds=10),
-            )
+            
+            # PAUSE: Wait for signal with resolution choice
+            workflow.logger.info(f"{shipment_id}: Waiting for resolution signal...")
+            await workflow.wait_condition(lambda: self.resolution_choice is not None)
+            
+            # Step 6: Process the resolution based on user choice
+            workflow.logger.info(f"{shipment_id}: Received resolution choice: {self.resolution_choice}")
+            
+            if self.resolution_choice == "expedite":
+                # Express Clearance - $5000 - Fastest option
+                workflow.logger.info(f"{shipment_id}: Processing express clearance (+$5000)...")
+                await asyncio.sleep(30)  # Increased from 2 to 30 seconds (1-2 days)
+                await workflow.execute_activity(
+                    update_shipment_status,
+                    args=[
+                        shipment_id,
+                        "Cleared Customs",
+                        f"Customs cleared (Express Service) - {shipment_data['destination']}",
+                        None
+                    ],
+                    start_to_close_timeout=timedelta(seconds=10),
+                )
+            elif self.resolution_choice == "bribe_official":
+                # Facilitation Fee - $2500 - Fast but not instant
+                workflow.logger.info(f"{shipment_id}: Processing facilitation payment (+$2500)...")
+                await asyncio.sleep(40)  # Increased from 3 to 40 seconds (2-3 days)
+                await workflow.execute_activity(
+                    update_shipment_status,
+                    args=[
+                        shipment_id,
+                        "Cleared Customs",
+                        f"Customs cleared (Expedited Processing) - {shipment_data['destination']}",
+                        None
+                    ],
+                    start_to_close_timeout=timedelta(seconds=10),
+                )
+            elif self.resolution_choice == "reroute":
+                # Reroute - $3200 - Takes time to reroute but avoids delays
+                workflow.logger.info(f"{shipment_id}: Rerouting shipment through alternative port (+$3200)...")
+                await asyncio.sleep(50)  # Increased from 4 to 50 seconds (3-4 days)
+                await workflow.execute_activity(
+                    update_shipment_status,
+                    args=[
+                        shipment_id,
+                        "Cleared Customs",
+                        f"Rerouted and cleared (Alternative Port) - {shipment_data['destination']}",
+                        None
+                    ],
+                    start_to_close_timeout=timedelta(seconds=10),
+                )
+            elif self.resolution_choice == "wait":
+                # Standard Wait - Free - Slowest option
+                workflow.logger.info(f"{shipment_id}: Waiting for standard processing (no additional cost)...")
+                await asyncio.sleep(60)  # Increased from 6 to 60 seconds (5-7 days)
+                await workflow.execute_activity(
+                    update_shipment_status,
+                    args=[
+                        shipment_id,
+                        "Cleared Customs",
+                        f"Customs cleared (Standard Processing) - {shipment_data['destination']}",
+                        None
+                    ],
+                    start_to_close_timeout=timedelta(seconds=10),
+                )
+            else:
+                workflow.logger.warning(f"{shipment_id}: Unknown choice, defaulting to standard processing")
+                await asyncio.sleep(60)
+                await workflow.execute_activity(
+                    update_shipment_status,
+                    args=[
+                        shipment_id,
+                        "Cleared Customs",
+                        f"Customs cleared - {shipment_data['destination']}",
+                        None
+                    ],
+                    start_to_close_timeout=timedelta(seconds=10),
+                )
         else:
-            workflow.logger.warning(f"{shipment_id}: Unknown choice, defaulting to standard processing")
-            await asyncio.sleep(60)
+            # 30% chance - no issues, direct clearance
+            workflow.logger.info(f"{shipment_id}: No issues detected, proceeding with clearance...")
+            await asyncio.sleep(8)
+            
             await workflow.execute_activity(
                 update_shipment_status,
                 args=[
                     shipment_id,
                     "Cleared Customs",
-                    f"Customs cleared - {shipment_data['destination']}",
+                    f"Customs cleared (No Issues) - {shipment_data['destination']}",
                     None
                 ],
                 start_to_close_timeout=timedelta(seconds=10),
@@ -228,7 +297,7 @@ async def main():
         client,
         task_queue="shipment-task-queue",
         workflows=[ShipmentLifecycleWorkflow],
-        activities=[create_shipment_record, update_shipment_status],
+        activities=[create_shipment_record, update_shipment_status, generate_random_issues],
     )
     
     print("🚀 Temporal Worker started on task queue: shipment-task-queue")
