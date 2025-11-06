@@ -91,6 +91,28 @@
             align-items: center;
         }
 
+        .navbar-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            backdrop-filter: blur(10px);
+            border: none;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .navbar-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
         .refresh-indicator {
             display: flex;
             align-items: center;
@@ -354,22 +376,24 @@
 
         /* Resolution Option Cards */
         .resolution-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-top: 12px;
         }
 
         .resolution-card {
             background: white;
             border: 2px solid var(--gray-200);
-            border-radius: 10px;
-            padding: 14px;
+            border-radius: 8px;
+            padding: 10px 14px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
             position: relative;
             overflow: hidden;
+            flex: 1;
+            min-width: 120px;
         }
 
         .resolution-card:hover {
@@ -411,23 +435,23 @@
         }
 
         .resolution-icon {
-            font-size: 2em;
-            margin-bottom: 8px;
+            font-size: 1.5em;
+            margin-bottom: 4px;
             display: block;
         }
 
         .resolution-name {
             font-weight: 600;
-            font-size: 0.9em;
+            font-size: 0.85em;
             color: var(--gray-900);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         .resolution-cost {
             font-weight: 700;
             color: var(--error-color);
-            font-size: 1.1em;
-            margin-bottom: 4px;
+            font-size: 0.95em;
+            margin-bottom: 2px;
         }
 
         .resolution-cost.free {
@@ -435,7 +459,7 @@
         }
 
         .resolution-time {
-            font-size: 0.75em;
+            font-size: 0.7em;
             color: var(--gray-500);
             font-weight: 500;
         }
@@ -1094,6 +1118,12 @@
                 </div>
             </div>
             <div class="navbar-actions">
+                <button class="navbar-btn" onclick="generateRandomShipment()">
+                    🎲 Quick Random
+                </button>
+                <button class="navbar-btn" onclick="openCustomModal()">
+                    ➕ Create Custom
+                </button>
                 <div class="refresh-indicator">
                     <div class="pulse-dot"></div>
                     <span>Live Updates</span>
@@ -1144,20 +1174,6 @@
             </div>
         </div>
 
-        <!-- Quick Action Buttons -->
-        <div class="quick-actions">
-            <div class="action-btn" onclick="generateRandomShipment()">
-                <div class="action-btn-icon">🎲</div>
-                <div class="action-btn-title">Quick Random Shipment</div>
-                <div class="action-btn-desc">Generate a shipment with funny random details</div>
-            </div>
-            <div class="action-btn" onclick="openCustomModal()">
-                <div class="action-btn-icon">➕</div>
-                <div class="action-btn-title">Create Custom Shipment</div>
-                <div class="action-btn-desc">Enter your own shipment details</div>
-            </div>
-        </div>
-
         <!-- Active Shipments Section -->
         <div class="card" id="active-shipments-section" style="display: none;">
             <div class="card-header">
@@ -1187,12 +1203,12 @@
                 </table>
             </div>
         </div>
-        <!-- All Shipments Table -->
+        <!-- Completed Shipments Table -->
         <div class="card" style="margin-top: 30px;">
             <div class="card-header">
                 <div class="card-title">
-                    <span class="card-title-icon">📊</span>
-                    All Shipments
+                    <span class="card-title-icon">�</span>
+                    Completed Shipments
                 </div>
             </div>
             <div class="table-container">
@@ -1388,6 +1404,22 @@
         
         // Store previous shipments state for comparison
         let previousShipments = {};
+        
+        // Store random costs per shipment to keep them consistent
+        const shipmentCosts = {};
+        
+        // Function to generate random costs for a shipment
+        function getResolutionCosts(shipmentId) {
+            if (!shipmentCosts[shipmentId]) {
+                shipmentCosts[shipmentId] = {
+                    expedite: Math.floor(Math.random() * 6000) + 3000, // $3k-$9k
+                    bribe_official: Math.floor(Math.random() * 3000) + 1500, // $1.5k-$4.5k
+                    reroute: Math.floor(Math.random() * 4000) + 2000, // $2k-$6k
+                    wait: 0 // Always free
+                };
+            }
+            return shipmentCosts[shipmentId];
+        }
 
         // Random data for quick shipment generation
         const randomData = {
@@ -1675,30 +1707,33 @@
                 // Details cell content
                 let detailsCell = '';
                 if (shipment.status === 'Issue Detected') {
+                    // Get random costs for this shipment
+                    const costs = getResolutionCosts(shipment.shipment_id);
+                    
                     // Show issue text and resolution options
                     detailsCell = `
                         <div>
                             <div class="issue-text">⚠️ ${shipment.issue_details || 'Issue detected'}</div>
                             <div class="resolution-options">
-                                <div class="resolution-card premium" onclick="resolveIssue('${shipment.shipment_id}', 'expedite')">
+                                <div class="resolution-card premium" onclick="resolveIssue('${shipment.shipment_id}', 'expedite', ${costs.expedite})">
                                     <span class="resolution-icon">⚡</span>
                                     <div class="resolution-name">Express</div>
-                                    <div class="resolution-cost">+$5,000</div>
+                                    <div class="resolution-cost">+$${costs.expedite.toLocaleString()}</div>
                                     <div class="resolution-time">~30s</div>
                                 </div>
-                                <div class="resolution-card fast" onclick="resolveIssue('${shipment.shipment_id}', 'bribe_official')">
+                                <div class="resolution-card fast" onclick="resolveIssue('${shipment.shipment_id}', 'bribe_official', ${costs.bribe_official})">
                                     <span class="resolution-icon">💼</span>
                                     <div class="resolution-name">Facilitation</div>
-                                    <div class="resolution-cost">+$2,500</div>
+                                    <div class="resolution-cost">+$${costs.bribe_official.toLocaleString()}</div>
                                     <div class="resolution-time">~40s</div>
                                 </div>
-                                <div class="resolution-card moderate" onclick="resolveIssue('${shipment.shipment_id}', 'reroute')">
+                                <div class="resolution-card moderate" onclick="resolveIssue('${shipment.shipment_id}', 'reroute', ${costs.reroute})">
                                     <span class="resolution-icon">🔄</span>
                                     <div class="resolution-name">Reroute</div>
-                                    <div class="resolution-cost">+$3,200</div>
+                                    <div class="resolution-cost">+$${costs.reroute.toLocaleString()}</div>
                                     <div class="resolution-time">~50s</div>
                                 </div>
-                                <div class="resolution-card standard" onclick="resolveIssue('${shipment.shipment_id}', 'wait')">
+                                <div class="resolution-card standard" onclick="resolveIssue('${shipment.shipment_id}', 'wait', ${costs.wait})">
                                     <span class="resolution-icon">⏳</span>
                                     <div class="resolution-name">Wait</div>
                                     <div class="resolution-cost free">Free</div>
@@ -1870,21 +1905,24 @@
         function renderShipmentsTable(shipments, previousData = {}) {
             const tbody = document.querySelector('#shipments-table tbody');
             
-            // Check if shipments object is empty
-            if (Object.keys(shipments).length === 0) {
+            // Filter for completed (delivered) shipments only
+            const shipmentsArray = Object.values(shipments).filter(s => s.status === 'Delivered');
+            
+            // Check if there are no completed shipments
+            if (shipmentsArray.length === 0) {
                 tbody.innerHTML = `
                     <tr>
                         <td colspan="8" class="loading">
-                            <div style="font-size: 1.2em; margin-bottom: 10px;">📦</div>
-                            No shipments found. Create your first shipment above!
+                            <div style="font-size: 1.2em; margin-bottom: 10px;">✅</div>
+                            No completed shipments yet. Shipments will appear here once delivered.
                         </td>
                     </tr>
                 `;
                 return;
             }
 
-            // Convert object to array and sort by shipment_id (newest first)
-            const shipmentsArray = Object.values(shipments).sort((a, b) => {
+            // Sort by shipment_id (newest first)
+            shipmentsArray.sort((a, b) => {
                 return b.shipment_id.localeCompare(a.shipment_id);
             });
 
@@ -1935,6 +1973,9 @@
                 // Determine the Details / Actions cell content
                 let detailsCell = '';
                 if (shipment.status === 'Issue Detected') {
+                    // Get random costs for this shipment
+                    const costs = getResolutionCosts(shipment.shipment_id);
+                    
                     // Show resolution option cards
                     detailsCell = `
                         <div>
@@ -1943,25 +1984,25 @@
                                 <strong>${shipment.issue_details || 'Issue detected'}</strong>
                             </div>
                             <div class="resolution-options">
-                                <div class="resolution-card premium" onclick="resolveIssue('${shipment.shipment_id}', 'expedite')">
+                                <div class="resolution-card premium" onclick="resolveIssue('${shipment.shipment_id}', 'expedite', ${costs.expedite})">
                                     <span class="resolution-icon">⚡</span>
                                     <div class="resolution-name">Express</div>
-                                    <div class="resolution-cost">+$5,000</div>
+                                    <div class="resolution-cost">+$${costs.expedite.toLocaleString()}</div>
                                     <div class="resolution-time">~30 sec</div>
                                 </div>
-                                <div class="resolution-card fast" onclick="resolveIssue('${shipment.shipment_id}', 'bribe_official')">
+                                <div class="resolution-card fast" onclick="resolveIssue('${shipment.shipment_id}', 'bribe_official', ${costs.bribe_official})">
                                     <span class="resolution-icon">💰</span>
                                     <div class="resolution-name">Facilitation</div>
-                                    <div class="resolution-cost">+$2,500</div>
+                                    <div class="resolution-cost">+$${costs.bribe_official.toLocaleString()}</div>
                                     <div class="resolution-time">~40 sec</div>
                                 </div>
-                                <div class="resolution-card moderate" onclick="resolveIssue('${shipment.shipment_id}', 'reroute')">
+                                <div class="resolution-card moderate" onclick="resolveIssue('${shipment.shipment_id}', 'reroute', ${costs.reroute})">
                                     <span class="resolution-icon">🔄</span>
                                     <div class="resolution-name">Reroute</div>
-                                    <div class="resolution-cost">+$3,200</div>
+                                    <div class="resolution-cost">+$${costs.reroute.toLocaleString()}</div>
                                     <div class="resolution-time">~50 sec</div>
                                 </div>
-                                <div class="resolution-card standard" onclick="resolveIssue('${shipment.shipment_id}', 'wait')">
+                                <div class="resolution-card standard" onclick="resolveIssue('${shipment.shipment_id}', 'wait', ${costs.wait})">
                                     <span class="resolution-icon">⏳</span>
                                     <div class="resolution-name">Wait</div>
                                     <div class="resolution-cost free">Free</div>
@@ -2006,11 +2047,11 @@
         /**
          * Resolve a shipment issue by sending a signal to the workflow
          */
-        async function resolveIssue(shipmentId, choice) {
+        async function resolveIssue(shipmentId, choice, cost) {
             const choiceNames = {
-                'expedite': 'Express Clearance ($5,000)',
-                'bribe_official': 'Facilitation Fee ($2,500)',
-                'reroute': 'Reroute Shipment ($3,200)',
+                'expedite': `Express Clearance (+$${cost.toLocaleString()})`,
+                'bribe_official': `Facilitation Fee (+$${cost.toLocaleString()})`,
+                'reroute': `Reroute Shipment (+$${cost.toLocaleString()})`,
                 'wait': 'Standard Wait (Free)'
             };
 
