@@ -1,0 +1,56 @@
+{
+  "SHP-1001": {
+    "shipment_id": "SHP-1001",
+    "supplier_name": "Global Electronics Manufacturing Ltd.",
+    "origin": "Shenzhen, China",
+    "destination": "Rotterdam, Netherlands",
+    "current_location": "Singapore Port - Container Terminal",
+    "status": "In Transit",
+    "issue_details": null
+  },
+  "SHP-1002": {
+    "shipment_id": "SHP-1002",
+    "supplier_name": "Nordic Timber Industries AS",
+    "origin": "Oslo, Norway",
+    "destination": "Hamburg, Germany",
+    "status": "Delivered",
+    "current_location": "Hamburg Distribution Center",
+    "issue_details": null
+  },
+  "SHP-1003": {
+    "shipment_id": "SHP-1003",
+    "supplier_name": "Pacific Automotive Parts Inc.",
+    "origin": "Tokyo, Japan",
+    "destination": "Los Angeles, USA",
+    "current_location": "Port of Long Beach - Customs Clearance",
+    "status": "In Transit",
+    "issue_details": null
+  },
+  "SHP-1004": {
+    "shipment_id": "SHP-1004",
+    "supplier_name": "Mediterranean Food Exports S.A.",
+    "origin": "Barcelona, Spain",
+    "destination": "Miami, USA",
+    "current_location": "Atlantic Ocean - 500 nautical miles from Miami",
+    "status": "In Transit",
+    "issue_details": null
+  },
+  "SHP-11061349-9669": {
+    "current_location": "Delivered to sweden",
+    "destination": "sweden",
+    "issue_details": "Documentation discrepancy found - requires manual review",
+    "origin": "Warehouse Alpha",
+    "shipment_id": "SHP-11061349-9669",
+    "status": "Delivered",
+    "supplier_name": "wifu creater"
+  },
+  "SHP-11061352-141B": {
+    "current_location": "Delivered to Stockholm, Sweden",
+    "destination": "Stockholm, Sweden",
+    "issue_details": "Documentation discrepancy found - requires manual review",
+    "origin": "Warehouse Alpha",
+    "shipment_id": "SHP-11061352-141B",
+    "status": "Delivered",
+    "supplier_name": "China Numba 1 "
+  }
+}

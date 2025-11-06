@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistics Shipment Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .form-group input {
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-expedite {
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.9em;
+            margin-right: 8px;
+        }
+
+        .btn-expedite:hover {
+            background: #218838;
+        }
+
+        .btn-wait {
+            background: #ffc107;
+            color: #333;
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .btn-wait:hover {
+            background: #e0a800;
+        }
+
+        .table-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tbody tr {
+            transition: background-color 0.3s;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* Status-based row styling */
+        .status-issue {
+            background-color: #ffe0e0 !important;
+            border-left: 4px solid #dc3545;
+        }
+
+        .status-issue:hover {
+            background-color: #ffd0d0 !important;
+        }
+
+        .status-transit {
+            background-color: #fff8e1 !important;
+            border-left: 4px solid #ffc107;
+        }
+
+        .status-transit:hover {
+            background-color: #ffecb3 !important;
+        }
+
+        .status-delivered {
+            background-color: #e8f5e9 !important;
+            border-left: 4px solid #28a745;
+        }
+
+        .status-delivered:hover {
+            background-color: #d0f0d4 !important;
+        }
+
+        .status-pending {
+            background-color: #e3f2fd !important;
+            border-left: 4px solid #2196f3;
+        }
+
+        .status-pending:hover {
+            background-color: #cfe8fc !important;
+        }
+
+        .status-customs {
+            background-color: #f3e5f5 !important;
+            border-left: 4px solid #9c27b0;
+        }
+
+        .status-customs:hover {
+            background-color: #e1bee7 !important;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-issue {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .badge-transit {
+            background-color: #ffc107;
+            color: #333;
+        }
+
+        .badge-delivered {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .badge-pending {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .badge-customs {
+            background-color: #9c27b0;
+            color: white;
+        }
+
+        .issue-text {
+            color: #721c24;
+            font-weight: 500;
+            font-style: italic;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .auto-refresh {
+            text-align: right;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 15px;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            th, td {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚢 Logistics Shipment Tracker</h1>
+            <p>Real-time shipment monitoring powered by Temporal workflows</p>
+        </div>
+
+        <div class="content">
+            <!-- Create New Shipment Form -->
+            <div class="form-section">
+                <h2>📦 Create New Shipment</h2>
+                <form id="create-shipment-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="supplier_name">Supplier Name *</label>
+                            <input 
+                                type="text" 
+                                id="supplier_name" 
+                                name="supplier_name" 
+                                placeholder="e.g., Acme Electronics Inc."
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="destination">Destination *</label>
+                            <input 
+                                type="text" 
+                                id="destination" 
+                                name="destination" 
+                                placeholder="e.g., New York, USA"
+                                required
+                            >
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Shipment & Start Workflow</button>
+                </form>
+            </div>
+
+            <!-- Shipments Table -->
+            <div class="table-section">
+                <h2>📊 All Shipments</h2>
+                <div class="table-container">
+                    <table id="shipments-table">
+                        <thead>
+                            <tr>
+                                <th>Shipment ID</th>
+                                <th>Supplier</th>
+                                <th>Origin</th>
+                                <th>Destination</th>
+                                <th>Current Location</th>
+                                <th>Status</th>
+                                <th>Details / Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="7" class="loading">Loading shipments...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="auto-refresh">🔄 Auto-refreshing every 2 seconds</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+
+        /**
+         * Fetch all shipments from the API and render them in the table
+         */
+        async function getShipments() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/shipments`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const shipments = await response.json();
+                renderShipmentsTable(shipments);
+            } catch (error) {
+                console.error('Error fetching shipments:', error);
+                const tbody = document.querySelector('#shipments-table tbody');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="loading" style="color: #dc3545;">
+                            ⚠️ Error loading shipments. Make sure the API server is running at ${API_BASE_URL}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        /**
+         * Render the shipments table with data
+         */
+        function renderShipmentsTable(shipments) {
+            const tbody = document.querySelector('#shipments-table tbody');
+            
+            // Check if shipments object is empty
+            if (Object.keys(shipments).length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="loading">No shipments found. Create one above!</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Convert object to array and sort by shipment_id (newest first)
+            const shipmentsArray = Object.values(shipments).sort((a, b) => {
+                return b.shipment_id.localeCompare(a.shipment_id);
+            });
+
+            tbody.innerHTML = shipmentsArray.map(shipment => {
+                // Determine row CSS class based on status
+                let rowClass = '';
+                let badgeClass = '';
+                
+                if (shipment.status === 'Issue Detected') {
+                    rowClass = 'status-issue';
+                    badgeClass = 'badge-issue';
+                } else if (shipment.status === 'In Transit') {
+                    rowClass = 'status-transit';
+                    badgeClass = 'badge-transit';
+                } else if (shipment.status === 'Delivered') {
+                    rowClass = 'status-delivered';
+                    badgeClass = 'badge-delivered';
+                } else if (shipment.status === 'Pending') {
+                    rowClass = 'status-pending';
+                    badgeClass = 'badge-pending';
+                } else if (shipment.status.includes('Customs')) {
+                    rowClass = 'status-customs';
+                    badgeClass = 'badge-customs';
+                }
+
+                // Determine the Details / Actions cell content
+                let detailsCell = '';
+                if (shipment.status === 'Issue Detected') {
+                    // Show action buttons
+                    detailsCell = `
+                        <div>
+                            <p class="issue-text">${shipment.issue_details || 'Issue detected'}</p>
+                            <div style="margin-top: 10px;">
+                                <button 
+                                    class="btn btn-expedite" 
+                                    onclick="resolveIssue('${shipment.shipment_id}', 'expedite')"
+                                >
+                                    ⚡ Expedite
+                                </button>
+                                <button 
+                                    class="btn btn-wait" 
+                                    onclick="resolveIssue('${shipment.shipment_id}', 'wait')"
+                                >
+                                    ⏳ Wait
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Show issue details text or empty
+                    detailsCell = shipment.issue_details 
+                        ? `<span class="issue-text">${shipment.issue_details}</span>` 
+                        : '-';
+                }
+
+                return `
+                    <tr class="${rowClass}">
+                        <td><strong>${shipment.shipment_id}</strong></td>
+                        <td>${shipment.supplier_name}</td>
+                        <td>${shipment.origin}</td>
+                        <td>${shipment.destination}</td>
+                        <td>${shipment.current_location || '-'}</td>
+                        <td><span class="status-badge ${badgeClass}">${shipment.status}</span></td>
+                        <td>${detailsCell}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Resolve a shipment issue by sending a signal to the workflow
+         */
+        async function resolveIssue(shipmentId, choice) {
+            try {
+                const response = await fetch(
+                    `${API_BASE_URL}/api/shipments/${shipmentId}/resolve`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ choice: choice })
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Resolution sent:', result);
+                
+                // Immediately refresh to show the update
+                await getShipments();
+                
+                alert(`✅ Resolution "${choice}" sent successfully! The workflow will now continue.`);
+            } catch (error) {
+                console.error('Error resolving issue:', error);
+                alert(`❌ Error sending resolution: ${error.message}`);
+            }
+        }
+
+        /**
+         * Handle form submission to create a new shipment
+         */
+        document.getElementById('create-shipment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const shipmentData = {
+                supplier_name: formData.get('supplier_name'),
+                destination: formData.get('destination')
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/shipments/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(shipmentData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log('Shipment created:', result);
+                
+                // Clear the form
+                e.target.reset();
+                
+                // Immediately refresh to show the new shipment
+                await getShipments();
+                
+                alert(`✅ Shipment ${result.shipment_id} created successfully! Workflow started.`);
+            } catch (error) {
+                console.error('Error creating shipment:', error);
+                alert(`❌ Error creating shipment: ${error.message}`);
+            }
+        });
+
+        // Initial load
+        getShipments();
+
+        // Auto-refresh every 2 seconds for "realtime" updates
+        setInterval(getShipments, 2000);
+    </script>
+</body>
+</html>
