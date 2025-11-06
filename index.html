@@ -80,7 +80,8 @@
             color: #555;
         }
 
-        .form-group input {
+        .form-group input,
+        .form-group select {
             padding: 12px;
             border: 2px solid #dee2e6;
             border-radius: 6px;
@@ -88,7 +89,8 @@
             transition: border-color 0.3s;
         }
 
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #667eea;
         }
@@ -117,8 +119,9 @@
             background: #28a745;
             color: white;
             padding: 8px 16px;
-            font-size: 0.9em;
+            font-size: 0.85em;
             margin-right: 8px;
+            margin-bottom: 8px;
         }
 
         .btn-expedite:hover {
@@ -129,11 +132,52 @@
             background: #ffc107;
             color: #333;
             padding: 8px 16px;
-            font-size: 0.9em;
+            font-size: 0.85em;
+            margin-right: 8px;
+            margin-bottom: 8px;
         }
 
         .btn-wait:hover {
             background: #e0a800;
+        }
+
+        .btn-premium {
+            background: #007bff;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.85em;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .btn-premium:hover {
+            background: #0056b3;
+        }
+
+        .btn-standard {
+            background: #6c757d;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.85em;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .btn-standard:hover {
+            background: #545b62;
+        }
+
+        .action-buttons {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .cost-label {
+            font-weight: 600;
+            color: #dc3545;
+            font-size: 0.85em;
         }
 
         .table-section h2 {
@@ -311,7 +355,17 @@
                 <form id="create-shipment-form">
                     <div class="form-grid">
                         <div class="form-group">
-                            <label for="supplier_name">Supplier Name *</label>
+                            <label for="project_name">Project Name / Cargo Description *</label>
+                            <input 
+                                type="text" 
+                                id="project_name" 
+                                name="project_name" 
+                                placeholder="e.g., Q4 Electronics Deployment"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="supplier_name">Supplier / Vendor Name *</label>
                             <input 
                                 type="text" 
                                 id="supplier_name" 
@@ -321,7 +375,18 @@
                             >
                         </div>
                         <div class="form-group">
-                            <label for="destination">Destination *</label>
+                            <label for="origin">Origin Port / Location *</label>
+                            <input 
+                                type="text" 
+                                id="origin" 
+                                name="origin" 
+                                placeholder="e.g., Shanghai, China"
+                                value="Warehouse Alpha"
+                                required
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="destination">Destination Port / Location *</label>
                             <input 
                                 type="text" 
                                 id="destination" 
@@ -329,6 +394,36 @@
                                 placeholder="e.g., New York, USA"
                                 required
                             >
+                        </div>
+                    </div>
+                    <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                        <div class="form-group">
+                            <label for="cargo_value">Estimated Cargo Value (USD)</label>
+                            <input 
+                                type="number" 
+                                id="cargo_value" 
+                                name="cargo_value" 
+                                placeholder="e.g., 250000"
+                                min="0"
+                                step="1000"
+                            >
+                        </div>
+                        <div class="form-group">
+                            <label for="priority">Priority Level *</label>
+                            <select id="priority" name="priority" required>
+                                <option value="Standard">Standard</option>
+                                <option value="High">High</option>
+                                <option value="Critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="container_type">Container Type</label>
+                            <select id="container_type" name="container_type">
+                                <option value="20ft Standard">20ft Standard</option>
+                                <option value="40ft Standard">40ft Standard</option>
+                                <option value="40ft High Cube">40ft High Cube</option>
+                                <option value="Refrigerated">Refrigerated</option>
+                            </select>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary">Create Shipment & Start Workflow</button>
@@ -438,22 +533,38 @@
                 // Determine the Details / Actions cell content
                 let detailsCell = '';
                 if (shipment.status === 'Issue Detected') {
-                    // Show action buttons
+                    // Show action buttons with realistic options
                     detailsCell = `
                         <div>
-                            <p class="issue-text">${shipment.issue_details || 'Issue detected'}</p>
-                            <div style="margin-top: 10px;">
+                            <p class="issue-text"><strong>⚠️ ${shipment.issue_details || 'Issue detected'}</strong></p>
+                            <div class="action-buttons">
+                                <button 
+                                    class="btn btn-premium" 
+                                    onclick="resolveIssue('${shipment.shipment_id}', 'expedite')"
+                                    title="Fast-track clearance with premium service"
+                                >
+                                    ⚡ Express Clearance<br><span class="cost-label">+$5,000</span>
+                                </button>
                                 <button 
                                     class="btn btn-expedite" 
-                                    onclick="resolveIssue('${shipment.shipment_id}', 'expedite')"
+                                    onclick="resolveIssue('${shipment.shipment_id}', 'bribe_official')"
+                                    title="Expedite through facilitation payment"
                                 >
-                                    ⚡ Expedite
+                                    💰 Facilitation Fee<br><span class="cost-label">+$2,500</span>
                                 </button>
                                 <button 
                                     class="btn btn-wait" 
                                     onclick="resolveIssue('${shipment.shipment_id}', 'wait')"
+                                    title="Wait for standard processing (5-7 business days)"
                                 >
-                                    ⏳ Wait
+                                    ⏳ Standard Wait<br><span style="font-size: 0.85em;">No cost</span>
+                                </button>
+                                <button 
+                                    class="btn btn-standard" 
+                                    onclick="resolveIssue('${shipment.shipment_id}', 'reroute')"
+                                    title="Reroute through alternative customs point"
+                                >
+                                    🔄 Reroute Shipment<br><span class="cost-label">+$3,200</span>
                                 </button>
                             </div>
                         </div>
@@ -520,8 +631,13 @@
             
             const formData = new FormData(e.target);
             const shipmentData = {
+                project_name: formData.get('project_name'),
                 supplier_name: formData.get('supplier_name'),
-                destination: formData.get('destination')
+                origin: formData.get('origin'),
+                destination: formData.get('destination'),
+                cargo_value: formData.get('cargo_value') || null,
+                priority: formData.get('priority'),
+                container_type: formData.get('container_type')
             };
 
             try {

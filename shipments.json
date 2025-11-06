@@ -52,5 +52,31 @@
     "shipment_id": "SHP-11061352-141B",
     "status": "Delivered",
     "supplier_name": "China Numba 1 "
+  },
+  "SHP-11061404-8256": {
+    "cargo_value": 25000,
+    "container_type": "20ft Standard",
+    "current_location": "Delivered to Stockholm, Sweden",
+    "destination": "Stockholm, Sweden",
+    "issue_details": "Documentation discrepancy found - requires manual review",
+    "origin": "Warehouse Alpha",
+    "priority": "Standard",
+    "project_name": "Lots of wifus",
+    "shipment_id": "SHP-11061404-8256",
+    "status": "Delivered",
+    "supplier_name": "China Numba 1 "
+  },
+  "SHP-11061406-C676": {
+    "cargo_value": 5000,
+    "container_type": "40ft High Cube",
+    "current_location": "Delivered to Stockholm, Sweden",
+    "destination": "Stockholm, Sweden",
+    "issue_details": "Documentation discrepancy found - requires manual review",
+    "origin": "Warehouse Alpha",
+    "priority": "Critical",
+    "project_name": "Lots of wifus",
+    "shipment_id": "SHP-11061406-C676",
+    "status": "Delivered",
+    "supplier_name": "China Numba 1 "
   }
 }

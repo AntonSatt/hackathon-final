@@ -121,34 +121,64 @@ class ShipmentLifecycleWorkflow:
         workflow.logger.info(f"{shipment_id}: Received resolution choice: {self.resolution_choice}")
         
         if self.resolution_choice == "expedite":
-            workflow.logger.info(f"{shipment_id}: Expediting clearance process...")
-            await asyncio.sleep(2)  # Faster processing
+            # Express Clearance - $5000 - Fastest option
+            workflow.logger.info(f"{shipment_id}: Processing express clearance (+$5000)...")
+            await asyncio.sleep(2)  # Very fast processing
             await workflow.execute_activity(
                 update_shipment_status,
                 args=[
                     shipment_id,
                     "Cleared Customs",
-                    f"Customs cleared (expedited) - {shipment_data['destination']}",
+                    f"Customs cleared (Express Service) - {shipment_data['destination']}",
+                    None
+                ],
+                start_to_close_timeout=timedelta(seconds=10),
+            )
+        elif self.resolution_choice == "bribe_official":
+            # Facilitation Fee - $2500 - Fast but not instant
+            workflow.logger.info(f"{shipment_id}: Processing facilitation payment (+$2500)...")
+            await asyncio.sleep(3)  # Moderate speed
+            await workflow.execute_activity(
+                update_shipment_status,
+                args=[
+                    shipment_id,
+                    "Cleared Customs",
+                    f"Customs cleared (Expedited Processing) - {shipment_data['destination']}",
+                    None
+                ],
+                start_to_close_timeout=timedelta(seconds=10),
+            )
+        elif self.resolution_choice == "reroute":
+            # Reroute - $3200 - Takes time to reroute but avoids delays
+            workflow.logger.info(f"{shipment_id}: Rerouting shipment through alternative port (+$3200)...")
+            await asyncio.sleep(4)  # Takes longer to reroute
+            await workflow.execute_activity(
+                update_shipment_status,
+                args=[
+                    shipment_id,
+                    "Cleared Customs",
+                    f"Rerouted and cleared (Alternative Port) - {shipment_data['destination']}",
                     None
                 ],
                 start_to_close_timeout=timedelta(seconds=10),
             )
         elif self.resolution_choice == "wait":
-            workflow.logger.info(f"{shipment_id}: Waiting for standard processing...")
-            await asyncio.sleep(5)  # Slower processing
+            # Standard Wait - Free - Slowest option
+            workflow.logger.info(f"{shipment_id}: Waiting for standard processing (no additional cost)...")
+            await asyncio.sleep(6)  # Slowest processing
             await workflow.execute_activity(
                 update_shipment_status,
                 args=[
                     shipment_id,
                     "Cleared Customs",
-                    f"Customs cleared (standard) - {shipment_data['destination']}",
+                    f"Customs cleared (Standard Processing) - {shipment_data['destination']}",
                     None
                 ],
                 start_to_close_timeout=timedelta(seconds=10),
             )
         else:
             workflow.logger.warning(f"{shipment_id}: Unknown choice, defaulting to standard processing")
-            await asyncio.sleep(5)
+            await asyncio.sleep(6)
             await workflow.execute_activity(
                 update_shipment_status,
                 args=[

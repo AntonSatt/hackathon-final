@@ -37,13 +37,17 @@ app.add_middleware(
 # ============================================================================
 
 class CreateShipmentRequest(BaseModel):
+    project_name: str
     supplier_name: str
+    origin: str = "Warehouse Alpha"
     destination: str
-    origin: str = "Warehouse Alpha"  # Default origin
+    cargo_value: int = None
+    priority: str = "Standard"
+    container_type: str = "40ft Standard"
 
 
 class ResolveIssueRequest(BaseModel):
-    choice: str  # "expedite" or "wait"
+    choice: str  # "expedite", "wait", "bribe_official", "reroute"
 
 
 # ============================================================================
@@ -95,9 +99,13 @@ async def create_shipment(request: CreateShipmentRequest):
     # Create the shipment object
     shipment_data = {
         "shipment_id": shipment_id,
+        "project_name": request.project_name,
         "supplier_name": request.supplier_name,
         "origin": request.origin,
         "destination": request.destination,
+        "cargo_value": request.cargo_value,
+        "priority": request.priority,
+        "container_type": request.container_type,
         "current_location": request.origin,
         "status": "Pending",
         "issue_details": None
@@ -137,14 +145,17 @@ async def resolve_shipment_issue(shipment_id: str, request: ResolveIssueRequest)
     
     This endpoint:
     1. Gets the workflow handle using the shipment_id
-    2. Sends a signal with the user's choice ("expedite" or "wait")
+    2. Sends a signal with the user's choice
     3. The workflow will resume and continue processing
+    
+    Valid choices: "expedite" ($5000), "bribe_official" ($2500), "wait" (free), "reroute" ($3200)
     """
     # Validate the choice
-    if request.choice not in ["expedite", "wait"]:
+    valid_choices = ["expedite", "wait", "bribe_official", "reroute"]
+    if request.choice not in valid_choices:
         raise HTTPException(
             status_code=400,
-            detail="Invalid choice. Must be 'expedite' or 'wait'"
+            detail=f"Invalid choice. Must be one of: {', '.join(valid_choices)}"
         )
     
     try:
