@@ -78,5 +78,18 @@
     "shipment_id": "SHP-11061406-C676",
     "status": "Delivered",
     "supplier_name": "China Numba 1 "
+  },
+  "SHP-11061419-D1EE": {
+    "cargo_value": 4000,
+    "container_type": "40ft Standard",
+    "current_location": "Delivered to G\u00e4vle, Sweden",
+    "destination": "G\u00e4vle, Sweden",
+    "issue_details": "Documentation discrepancy found - requires manual review",
+    "origin": "Warehouse Alpha",
+    "priority": "High",
+    "project_name": "manga",
+    "shipment_id": "SHP-11061419-D1EE",
+    "status": "Delivered",
+    "supplier_name": "Alex"
   }
 }
