@@ -91,5 +91,18 @@
     "shipment_id": "SHP-11061419-D1EE",
     "status": "Delivered",
     "supplier_name": "Alex"
+  },
+  "SHP-11061434-0012": {
+    "cargo_value": 5000,
+    "container_type": "40ft Standard",
+    "current_location": "Delivered to Stockholm, Sweden",
+    "destination": "Stockholm, Sweden",
+    "issue_details": "Documentation discrepancy found - requires manual review",
+    "origin": "Warehouse Alpha",
+    "priority": "Critical",
+    "project_name": "manga",
+    "shipment_id": "SHP-11061434-0012",
+    "status": "Delivered",
+    "supplier_name": "Patrik"
   }
 }

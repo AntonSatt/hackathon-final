@@ -80,7 +80,7 @@ class ShipmentLifecycleWorkflow:
         
         # Step 2: Simulate travel time - move to "In Transit"
         workflow.logger.info(f"{shipment_id}: Simulating travel time...")
-        await asyncio.sleep(3)
+        await asyncio.sleep(10)  # Increased from 3 to 10 seconds
         
         await workflow.execute_activity(
             update_shipment_status,
@@ -90,7 +90,7 @@ class ShipmentLifecycleWorkflow:
         
         # Step 3: More travel time - arrive at customs
         workflow.logger.info(f"{shipment_id}: Continuing journey...")
-        await asyncio.sleep(3)
+        await asyncio.sleep(15)  # Increased from 3 to 15 seconds
         
         await workflow.execute_activity(
             update_shipment_status,
@@ -100,7 +100,7 @@ class ShipmentLifecycleWorkflow:
         
         # Step 4: Issue detected! Set status and PAUSE
         workflow.logger.info(f"{shipment_id}: Issue detected at customs!")
-        await asyncio.sleep(2)
+        await asyncio.sleep(8)  # Increased from 2 to 8 seconds
         
         await workflow.execute_activity(
             update_shipment_status,
@@ -123,7 +123,7 @@ class ShipmentLifecycleWorkflow:
         if self.resolution_choice == "expedite":
             # Express Clearance - $5000 - Fastest option
             workflow.logger.info(f"{shipment_id}: Processing express clearance (+$5000)...")
-            await asyncio.sleep(2)  # Very fast processing
+            await asyncio.sleep(30)  # Increased from 2 to 30 seconds (1-2 days)
             await workflow.execute_activity(
                 update_shipment_status,
                 args=[
@@ -137,7 +137,7 @@ class ShipmentLifecycleWorkflow:
         elif self.resolution_choice == "bribe_official":
             # Facilitation Fee - $2500 - Fast but not instant
             workflow.logger.info(f"{shipment_id}: Processing facilitation payment (+$2500)...")
-            await asyncio.sleep(3)  # Moderate speed
+            await asyncio.sleep(40)  # Increased from 3 to 40 seconds (2-3 days)
             await workflow.execute_activity(
                 update_shipment_status,
                 args=[
@@ -151,7 +151,7 @@ class ShipmentLifecycleWorkflow:
         elif self.resolution_choice == "reroute":
             # Reroute - $3200 - Takes time to reroute but avoids delays
             workflow.logger.info(f"{shipment_id}: Rerouting shipment through alternative port (+$3200)...")
-            await asyncio.sleep(4)  # Takes longer to reroute
+            await asyncio.sleep(50)  # Increased from 4 to 50 seconds (3-4 days)
             await workflow.execute_activity(
                 update_shipment_status,
                 args=[
@@ -165,7 +165,7 @@ class ShipmentLifecycleWorkflow:
         elif self.resolution_choice == "wait":
             # Standard Wait - Free - Slowest option
             workflow.logger.info(f"{shipment_id}: Waiting for standard processing (no additional cost)...")
-            await asyncio.sleep(6)  # Slowest processing
+            await asyncio.sleep(60)  # Increased from 6 to 60 seconds (5-7 days)
             await workflow.execute_activity(
                 update_shipment_status,
                 args=[
@@ -178,7 +178,7 @@ class ShipmentLifecycleWorkflow:
             )
         else:
             workflow.logger.warning(f"{shipment_id}: Unknown choice, defaulting to standard processing")
-            await asyncio.sleep(6)
+            await asyncio.sleep(60)
             await workflow.execute_activity(
                 update_shipment_status,
                 args=[
@@ -192,7 +192,7 @@ class ShipmentLifecycleWorkflow:
         
         # Step 6: Final delivery
         workflow.logger.info(f"{shipment_id}: Out for delivery...")
-        await asyncio.sleep(3)
+        await asyncio.sleep(10)  # Increased from 3 to 10 seconds
         
         await workflow.execute_activity(
             update_shipment_status,

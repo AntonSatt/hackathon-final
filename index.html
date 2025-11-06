@@ -440,6 +440,133 @@
             font-weight: 500;
         }
 
+        /* Timeline Animation */
+        .timeline-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 12px;
+            background: var(--gray-50);
+            border-radius: 8px;
+        }
+
+        .timeline-stage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            position: relative;
+        }
+
+        .timeline-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--gray-300);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            z-index: 2;
+        }
+
+        .timeline-stage.completed .timeline-dot {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .timeline-stage.active .timeline-dot {
+            background: var(--primary-color);
+            color: white;
+            animation: timelinePulse 2s infinite;
+            box-shadow: 0 0 0 0 rgba(30, 64, 175, 0.4);
+        }
+
+        @keyframes timelinePulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(30, 64, 175, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(30, 64, 175, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(30, 64, 175, 0);
+            }
+        }
+
+        .timeline-stage.issue .timeline-dot {
+            background: var(--error-color);
+            color: white;
+            animation: issueShake 0.5s ease-in-out;
+        }
+
+        @keyframes issueShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+
+        .timeline-label {
+            font-size: 0.7em;
+            color: var(--gray-600);
+            font-weight: 500;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .timeline-stage.active .timeline-label {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .timeline-stage.completed .timeline-label {
+            color: var(--success-color);
+        }
+
+        .timeline-line {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            right: -50%;
+            height: 2px;
+            background: var(--gray-300);
+            z-index: 1;
+        }
+
+        .timeline-stage.completed .timeline-line {
+            background: var(--success-color);
+        }
+
+        .timeline-stage:last-child .timeline-line {
+            display: none;
+        }
+
+        /* Active shipment indicator */
+        .active-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(30, 64, 175, 0.1);
+            border-radius: 12px;
+            font-size: 0.75em;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .spinner-icon {
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--primary-color);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
         /* Table Styles */
         .table-container {
             overflow-x: auto;
@@ -478,7 +605,7 @@
         }
 
         tbody tr {
-            transition: all 0.2s;
+            transition: background-color 0.5s ease, border-left-color 0.5s ease;
         }
 
         tbody tr:hover {
@@ -487,6 +614,20 @@
 
         tbody tr:last-child td {
             border-bottom: none;
+        }
+
+        /* Smooth cell updates */
+        td {
+            transition: all 0.5s ease;
+        }
+
+        .cell-updated {
+            animation: subtleFlash 1s ease-out;
+        }
+
+        @keyframes subtleFlash {
+            0%, 100% { background-color: transparent; }
+            50% { background-color: rgba(30, 64, 175, 0.05); }
         }
 
         /* Status-based row styling */
@@ -990,6 +1131,9 @@
 
     <script>
         const API_BASE_URL = 'http://127.0.0.1:8000';
+        
+        // Store previous shipments state for comparison
+        let previousShipments = {};
 
         /**
          * Show toast notification
@@ -1032,6 +1176,59 @@
         }
 
         /**
+         * Get timeline stage based on status
+         */
+        function getTimelineStage(status) {
+            const stages = ['Pending', 'In Transit', 'At Customs', 'Issue Detected', 'Cleared Customs', 'Delivered'];
+            const stage = stages.indexOf(status);
+            return stage >= 0 ? stage : 0;
+        }
+
+        /**
+         * Create timeline HTML
+         */
+        function createTimeline(status) {
+            const stages = [
+                { name: 'Pending', icon: '⏳' },
+                { name: 'In Transit', icon: '🚚' },
+                { name: 'At Customs', icon: '🛃' },
+                { name: 'Issue', icon: '⚠️' },
+                { name: 'Cleared', icon: '✅' },
+                { name: 'Delivered', icon: '🎉' }
+            ];
+
+            const currentStage = getTimelineStage(status);
+            
+            return `
+                <div class="timeline-container">
+                    ${stages.map((stage, index) => {
+                        let stageClass = '';
+                        if (index < currentStage) stageClass = 'completed';
+                        else if (index === currentStage) {
+                            if (status === 'Issue Detected') stageClass = 'issue';
+                            else stageClass = 'active';
+                        }
+                        
+                        return `
+                            <div class="timeline-stage ${stageClass}">
+                                <div class="timeline-dot">${stage.icon}</div>
+                                <div class="timeline-label">${stage.name}</div>
+                                ${index < stages.length - 1 ? '<div class="timeline-line"></div>' : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        /**
+         * Check if shipment is active (not delivered, not waiting for issue resolution)
+         */
+        function isShipmentActive(status) {
+            return status !== 'Delivered' && status !== 'Issue Detected';
+        }
+
+        /**
          * Get status icon based on status
          */
         function getStatusIcon(status) {
@@ -1071,7 +1268,12 @@
                 
                 const shipments = await response.json();
                 updateStats(shipments);
-                renderShipmentsTable(shipments);
+                
+                // Smart update: only re-render if data actually changed
+                if (JSON.stringify(shipments) !== JSON.stringify(previousShipments)) {
+                    renderShipmentsTable(shipments, previousShipments);
+                    previousShipments = JSON.parse(JSON.stringify(shipments));
+                }
             } catch (error) {
                 console.error('Error fetching shipments:', error);
                 const tbody = document.querySelector('#shipments-table tbody');
@@ -1088,7 +1290,7 @@
         /**
          * Render the shipments table with data
          */
-        function renderShipmentsTable(shipments) {
+        function renderShipmentsTable(shipments, previousData = {}) {
             const tbody = document.querySelector('#shipments-table tbody');
             
             // Check if shipments object is empty
@@ -1110,6 +1312,9 @@
             });
 
             tbody.innerHTML = shipmentsArray.map(shipment => {
+                const previous = previousData[shipment.shipment_id];
+                const hasChanged = previous && JSON.stringify(previous) !== JSON.stringify(shipment);
+                
                 // Determine row CSS class based on status
                 let rowClass = '';
                 let badgeClass = '';
@@ -1139,6 +1344,12 @@
                     priorityBadge = `<span class="priority-badge ${priorityClass}">${priorityIcon} ${shipment.priority}</span>`;
                 }
 
+                // Active indicator
+                const isActive = isShipmentActive(shipment.status);
+                const activeIndicator = isActive 
+                    ? `<span class="active-indicator"><div class="spinner-icon"></div> Processing</span>`
+                    : '';
+
                 // Cargo value display
                 const cargoValue = shipment.cargo_value 
                     ? `<span class="value-badge">💰 $${parseInt(shipment.cargo_value).toLocaleString()}</span>`
@@ -1159,38 +1370,38 @@
                                     <span class="resolution-icon">⚡</span>
                                     <div class="resolution-name">Express</div>
                                     <div class="resolution-cost">+$5,000</div>
-                                    <div class="resolution-time">~2 sec</div>
+                                    <div class="resolution-time">~30 sec</div>
                                 </div>
                                 <div class="resolution-card fast" onclick="resolveIssue('${shipment.shipment_id}', 'bribe_official')">
                                     <span class="resolution-icon">💰</span>
                                     <div class="resolution-name">Facilitation</div>
                                     <div class="resolution-cost">+$2,500</div>
-                                    <div class="resolution-time">~3 sec</div>
+                                    <div class="resolution-time">~40 sec</div>
                                 </div>
                                 <div class="resolution-card moderate" onclick="resolveIssue('${shipment.shipment_id}', 'reroute')">
                                     <span class="resolution-icon">🔄</span>
                                     <div class="resolution-name">Reroute</div>
                                     <div class="resolution-cost">+$3,200</div>
-                                    <div class="resolution-time">~4 sec</div>
+                                    <div class="resolution-time">~50 sec</div>
                                 </div>
                                 <div class="resolution-card standard" onclick="resolveIssue('${shipment.shipment_id}', 'wait')">
                                     <span class="resolution-icon">⏳</span>
                                     <div class="resolution-name">Wait</div>
                                     <div class="resolution-cost free">Free</div>
-                                    <div class="resolution-time">~6 sec</div>
+                                    <div class="resolution-time">~60 sec</div>
                                 </div>
                             </div>
+                            ${createTimeline(shipment.status)}
                         </div>
                     `;
                 } else {
-                    // Show issue details, cargo value, or empty
-                    if (shipment.issue_details) {
-                        detailsCell = `<span class="issue-text"><span>ℹ️</span>${shipment.issue_details}</span>`;
-                    } else if (shipment.cargo_value) {
-                        detailsCell = cargoValue;
-                    } else {
-                        detailsCell = '-';
-                    }
+                    // Show timeline for all active shipments
+                    detailsCell = `
+                        <div>
+                            ${shipment.cargo_value ? cargoValue : ''}
+                            ${createTimeline(shipment.status)}
+                        </div>
+                    `;
                 }
 
                 const statusIcon = getStatusIcon(shipment.status);
@@ -1201,6 +1412,7 @@
                         <td>
                             <strong>${shipment.project_name || '-'}</strong>
                             ${priorityBadge}
+                            ${activeIndicator}
                             ${shipment.container_type ? `<div style="font-size: 0.8em; color: var(--gray-500); margin-top: 4px;">📦 ${shipment.container_type}</div>` : ''}
                         </td>
                         <td>${shipment.supplier_name}</td>
