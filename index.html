@@ -1162,18 +1162,31 @@
         <div class="card" id="active-shipments-section" style="display: none;">
             <div class="card-header">
                 <div class="card-title">
-                    <span class="card-title-icon">�</span>
+                    <span class="card-title-icon">��</span>
                     Active Shipments
                 </div>
                 <span id="active-count" style="background: var(--primary-color); color: white; padding: 4px 12px; border-radius: 12px; font-weight: 600; font-size: 0.9em;">0</span>
             </div>
-            <div class="card-body">
-                <div class="active-shipments-grid" id="active-shipments-grid">
-                    <!-- Active shipments will be rendered here -->
-                </div>
+            <div class="table-container">
+                <table id="active-shipments-table">
+                    <thead>
+                        <tr>
+                            <th>📦 Shipment ID</th>
+                            <th>📋 Project</th>
+                            <th>🏢 Supplier</th>
+                            <th>📍 Origin</th>
+                            <th>🎯 Destination</th>
+                            <th>🚚 Current Location</th>
+                            <th>📊 Status</th>
+                            <th>⚙️ Details / Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="active-shipments-tbody">
+                        <!-- Active shipments will be rendered here -->
+                    </tbody>
+                </table>
             </div>
         </div>
-
         <!-- All Shipments Table -->
         <div class="card" style="margin-top: 30px;">
             <div class="card-header">
@@ -1611,7 +1624,7 @@
             const activeShipments = shipmentsArray.filter(s => s.status !== 'Delivered');
             
             const section = document.getElementById('active-shipments-section');
-            const grid = document.getElementById('active-shipments-grid');
+            const tbody = document.getElementById('active-shipments-tbody');
             const countBadge = document.getElementById('active-count');
             
             if (activeShipments.length === 0) {
@@ -1625,23 +1638,99 @@
             // Sort by newest first
             activeShipments.sort((a, b) => b.shipment_id.localeCompare(a.shipment_id));
             
-            grid.innerHTML = activeShipments.map(shipment => {
+            tbody.innerHTML = activeShipments.map(shipment => {
                 const statusIcon = getStatusIcon(shipment.status);
                 const isActive = isShipmentActive(shipment.status);
                 
+                // Determine row CSS class based on status
+                let rowClass = '';
+                if (shipment.status === 'Issue Detected') {
+                    rowClass = 'status-issue';
+                } else if (shipment.status === 'In Transit') {
+                    rowClass = 'status-transit';
+                } else if (shipment.status === 'Pending') {
+                    rowClass = 'status-pending';
+                } else if (shipment.status.includes('Customs')) {
+                    rowClass = 'status-customs';
+                }
+
+                // Priority badge
+                let priorityBadge = '';
+                if (shipment.priority) {
+                    const priorityClass = `priority-${shipment.priority.toLowerCase()}`;
+                    const priorityIcon = getPriorityIcon(shipment.priority);
+                    priorityBadge = `<span class="priority-badge ${priorityClass}">${priorityIcon} ${shipment.priority}</span>`;
+                }
+
+                // Active indicator
+                const activeIndicator = isActive 
+                    ? `<span class="active-indicator"><div class="spinner-icon"></div> Processing</span>`
+                    : '';
+
+                // Cargo value display
+                const cargoValue = shipment.cargo_value 
+                    ? `<span class="value-badge">💰 $${parseInt(shipment.cargo_value).toLocaleString()}</span>`
+                    : '-';
+
+                // Details cell content
+                let detailsCell = '';
+                if (shipment.status === 'Issue Detected') {
+                    // Show issue text and resolution options
+                    detailsCell = `
+                        <div>
+                            <div class="issue-text">⚠️ ${shipment.issue_details || 'Issue detected'}</div>
+                            <div class="resolution-options">
+                                <div class="resolution-card premium" onclick="resolveIssue('${shipment.shipment_id}', 'expedite')">
+                                    <span class="resolution-icon">⚡</span>
+                                    <div class="resolution-name">Express</div>
+                                    <div class="resolution-cost">+$5,000</div>
+                                    <div class="resolution-time">~30s</div>
+                                </div>
+                                <div class="resolution-card fast" onclick="resolveIssue('${shipment.shipment_id}', 'bribe_official')">
+                                    <span class="resolution-icon">💼</span>
+                                    <div class="resolution-name">Facilitation</div>
+                                    <div class="resolution-cost">+$2,500</div>
+                                    <div class="resolution-time">~40s</div>
+                                </div>
+                                <div class="resolution-card moderate" onclick="resolveIssue('${shipment.shipment_id}', 'reroute')">
+                                    <span class="resolution-icon">🔄</span>
+                                    <div class="resolution-name">Reroute</div>
+                                    <div class="resolution-cost">+$3,200</div>
+                                    <div class="resolution-time">~50s</div>
+                                </div>
+                                <div class="resolution-card standard" onclick="resolveIssue('${shipment.shipment_id}', 'wait')">
+                                    <span class="resolution-icon">⏳</span>
+                                    <div class="resolution-name">Wait</div>
+                                    <div class="resolution-cost free">Free</div>
+                                    <div class="resolution-time">~60s</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Show timeline for all active shipments
+                    detailsCell = createTimeline(shipment.status);
+                }
+
                 return `
-                    <div class="active-shipment-card">
-                        <div class="active-shipment-header">
-                            <div class="active-shipment-id">${shipment.shipment_id}</div>
-                            <span class="status-badge ${getStatusBadgeClass(shipment.status)}" style="font-size: 0.8em;">
+                    <tr class="${rowClass}">
+                        <td class="shipment-id-cell">${shipment.shipment_id}</td>
+                        <td>
+                            <strong>${shipment.project_name || 'Unknown Project'}</strong>
+                            ${priorityBadge}
+                        </td>
+                        <td>${shipment.supplier_name || '-'}</td>
+                        <td>${shipment.origin || '-'}</td>
+                        <td>${shipment.destination || '-'}</td>
+                        <td>${shipment.current_location || '-'}</td>
+                        <td>
+                            <span class="status-badge ${getStatusBadgeClass(shipment.status)}">
                                 ${statusIcon} ${shipment.status}
                             </span>
-                        </div>
-                        <div class="active-shipment-project">${shipment.project_name || 'Unknown Project'}</div>
-                        <div class="active-shipment-route">📍 ${shipment.origin} → 🎯 ${shipment.destination}</div>
-                        ${isActive ? '<div class="active-indicator" style="margin-left: 0;"><div class="spinner-icon"></div> Processing</div>' : ''}
-                        ${createTimeline(shipment.status)}
-                    </div>
+                            ${activeIndicator}
+                        </td>
+                        <td>${detailsCell}</td>
+                    </tr>
                 `;
             }).join('');
         }
