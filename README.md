@@ -173,3 +173,5 @@ For a structured 2-minute demo presentation, see [DEMO_SCRIPT.md](DEMO_SCRIPT.md
 ## 🎉 Credits
 
 Built for Temporal hackathon to demonstrate the power of durable workflow orchestration in supply chain logistics.
+
+© Team CI/CDamn! Anton Sätterkvist, Alex, Axel, Vincent, Patrik
