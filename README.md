@@ -8,6 +8,28 @@ An intelligent shipment tracking system powered by **Temporal workflows** that d
 - Python 3.8+
 - Temporal CLI installed ([Installation Guide](https://docs.temporal.io/cli#install))
 
+### Installation
+
+#### 1. Set up Python Virtual Environment (Linux/Mac)
+```bash
+# Create a virtual environment
+python -m venv venv
+
+# Activate the virtual environment
+source venv/bin/activate  # Linux/Mac
+```
+
+#### 2. Install Python Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+This will install:
+- `fastapi` - Web framework for the REST API
+- `uvicorn` - ASGI server to run FastAPI
+- `pydantic` - Data validation
+- `temporalio` - Temporal Python SDK for workflow orchestration
+
 ### Running the Application
 
 You need **3 terminal windows** running simultaneously:
